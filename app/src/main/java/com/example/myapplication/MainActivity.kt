@@ -14,7 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,7 +22,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.ui.theme.*
@@ -33,7 +32,29 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MyApplicationTheme {
-                FolioApp()
+                MainScreen()
+            }
+        }
+    }
+}
+
+@Composable
+fun MainScreen() {
+    // Estado para controlar qual tela está ativa
+    var currentScreen by remember { mutableStateOf("Feed") }
+
+    when (currentScreen) {
+        "Feed" -> FolioApp(onNavigate = { currentScreen = it })
+        "Search" -> ExplorarScreen(onNavigate = { currentScreen = it })
+        "Profile" -> UsuarioScreen(onNavigate = { currentScreen = it })
+        else -> {
+            // Placeholder para outras telas
+            Scaffold(
+                bottomBar = { SharedBottomNavigation(selectedItem = currentScreen, onNavigate = { currentScreen = it }) }
+            ) { padding ->
+                Box(Modifier.padding(padding).fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Tela $currentScreen em desenvolvimento")
+                }
             }
         }
     }
@@ -69,7 +90,7 @@ val samplePosts = listOf(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FolioApp() {
+fun FolioApp(onNavigate: (String) -> Unit) {
     Scaffold(
         containerColor = FolioBackground,
         topBar = {
@@ -92,7 +113,7 @@ fun FolioApp() {
             )
         },
         bottomBar = {
-            FolioBottomNavigation()
+            SharedBottomNavigation(selectedItem = "Feed", onNavigate = onNavigate)
         }
     ) { innerPadding ->
         LazyColumn(
@@ -188,7 +209,7 @@ fun PostCard(post: Post) {
                     Text(post.likes, fontSize = 13.sp, color = FolioTextSecondary)
                     Spacer(modifier = Modifier.width(20.dp))
                     Icon(
-                        Icons.Outlined.Email, // Substitute for ChatBubble
+                        Icons.Outlined.Email,
                         contentDescription = "Comment",
                         modifier = Modifier.size(20.dp),
                         tint = FolioTextSecondary
@@ -197,7 +218,7 @@ fun PostCard(post: Post) {
                     Text(post.comments, fontSize = 13.sp, color = FolioTextSecondary)
                 }
                 Icon(
-                    Icons.Default.Star, // Substitute for Bookmark
+                    Icons.Default.Star,
                     contentDescription = "Bookmark",
                     modifier = Modifier.size(20.dp),
                     tint = FolioTextSecondary
@@ -208,56 +229,62 @@ fun PostCard(post: Post) {
 }
 
 @Composable
-fun FolioBottomNavigation() {
+fun SharedBottomNavigation(selectedItem: String, onNavigate: (String) -> Unit) {
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 0.dp,
         modifier = Modifier.height(80.dp)
     ) {
         NavigationBarItem(
-            selected = true,
-            onClick = { },
-            icon = { Icon(Icons.Filled.Home, contentDescription = "Feed") },
+            selected = selectedItem == "Feed",
+            onClick = { onNavigate("Feed") },
+            icon = { Icon(if (selectedItem == "Feed") Icons.Filled.Description else Icons.Outlined.Description, contentDescription = null) },
             label = { Text("Feed", fontSize = 10.sp) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = FolioOrange,
                 selectedTextColor = FolioOrange,
-                unselectedIconColor = FolioTextSecondary,
-                unselectedTextColor = FolioTextSecondary,
+                unselectedIconColor = Color.Gray,
+                unselectedTextColor = Color.Gray,
                 indicatorColor = Color.Transparent
             )
         )
         NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = { Icon(Icons.Outlined.Email, contentDescription = "Chat") },
+            selected = selectedItem == "Chat",
+            onClick = { onNavigate("Chat") },
+            icon = { Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null) },
             label = { Text("Chat", fontSize = 10.sp) }
         )
         NavigationBarItem(
-            selected = false,
-            onClick = { },
+            selected = selectedItem == "Create",
+            onClick = { onNavigate("Create") },
             icon = { Icon(Icons.Outlined.Add, contentDescription = "Create") },
             label = { Text("Create", fontSize = 10.sp) }
         )
         NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = { Icon(Icons.Outlined.Search, contentDescription = "Search") },
-            label = { Text("Search", fontSize = 10.sp) }
+            selected = selectedItem == "Search",
+            onClick = { onNavigate("Search") },
+            icon = { Icon(if (selectedItem == "Search") Icons.Default.Search else Icons.Outlined.Search, contentDescription = "Search") },
+            label = { Text("Search", fontSize = 10.sp) },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = FolioOrange,
+                selectedTextColor = FolioOrange,
+                unselectedIconColor = Color.Gray,
+                unselectedTextColor = Color.Gray,
+                indicatorColor = Color.Transparent
+            )
         )
         NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = { Icon(Icons.Outlined.Person, contentDescription = "Profile") },
-            label = { Text("Profile", fontSize = 10.sp) }
+            selected = selectedItem == "Profile",
+            onClick = { onNavigate("Profile") },
+            icon = { Icon(if (selectedItem == "Profile") Icons.Filled.Person else Icons.Outlined.Person, contentDescription = "Profile") },
+            label = { Text("Profile", fontSize = 10.sp) },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = FolioOrange,
+                selectedTextColor = FolioOrange,
+                unselectedIconColor = Color.Gray,
+                unselectedTextColor = Color.Gray,
+                indicatorColor = Color.Transparent
+            )
         )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun FolioAppPreview() {
-    MyApplicationTheme {
-        FolioApp()
     }
 }
